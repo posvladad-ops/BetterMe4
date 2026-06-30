@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Better Me">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><rect width='180' height='180' rx='40' fill='%23F5F3EF' stroke='%231B1B1B' stroke-width='3'/><circle cx='58' cy='90' r='14' fill='none' stroke='%23C5C0B8' stroke-width='4'/><circle cx='122' cy='90' r='14' fill='none' stroke='%23C5C0B8' stroke-width='4'/><circle cx='90' cy='90' r='14' fill='%23C9B99A' stroke='%23C9B99A' stroke-width='4'/><line x1='72' y1='90' x2='76' y2='90' stroke='%23C5C0B8' stroke-width='4'/><line x1='104' y1='90' x2='108' y2='90' stroke='%23C5C0B8' stroke-width='4'/></svg>">
+    <title>Better Me</title>
+    <style>
+        :root {
+            --bg: #F4F2EF;
+            --card: #FFFFFF;
+            --text: #1B1B1B;
+            --text-light: #999;
+            --text-muted: #C5C5C5;
+            --border: #E8E4DD;
+            --gold: #C9B99A;
+            --khaki: #B8B09E;
+            --khaki-light: #E0DBD0;
+            --win: #5B8C7A;
+            --lose: #B06A6A;
+            --radius: 12px;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 40px 16px 100px;
+            display: flex;
+            justify-content: center;
+            -webkit-font-smoothing: antialiased;
+            font-size: 14px;
+            overflow-x: hidden;
+        }
+        input {
+            -webkit-user-select: text !important;
+            user-select: text !important;
+        }
+        .app {
+            max-width: 420px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0 4px;
+        }
+        .header .titles {
+            flex: 1;
+        }
+        .header h1 {
+            font-size: 20px;
+            font-weight: 500;
+            letter-spacing: -0.3px;
+        }
+        .header .sub {
+            font-size: 10px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-top: 2px;
+        }
+        .menu-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+        }
+
+        .panel-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            z-index: 200;
+            pointer-events: none;
+            transition: background 0.3s;
+        }
+        .panel-overlay.show {
+            background: rgba(27,25,22,0.5);
+            pointer-events: all;
+        }
+        .slide-panel {
+            position: fixed;
+            top: 0;
+            right: -280px;
+            width: 260px;
+            height: 100%;
+            background: #FFFEFB;
+            z-index: 210;
+            box-shadow: -4px 0 30px rgba(0,0,0,0.1);
+            transition: right 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+            padding: 60px 20px 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+        .slide-panel.show {
+            right: 0;
+        }
+        .panel-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .section-title {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--text-muted);
+        }
+        .panel-btn {
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            font-size: 12px;
+            cursor: pointer;
+            text-align: left;
+            font-family: inherit;
+            color: var(--text);
+        }
+        .panel-btn.danger {
+            color: #B06A6A;
+            border-color: #E8D5D5;
+        }
+        .panel-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--card);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+            font-family: inherit;
+        }
+
+        .cal-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(27,25,22,0.7);
+            z-index: 250;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s;
+        }
+        .cal-modal.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .cal-modal-card {
+            background: #FFFEFB;
+            border-radius: 20px;
+            padding: 20px 16px;
+            margin: 16px;
+            max-width: 380px;
+            width: 100%;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+        }
+        .cal-month-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .cal-month-header button {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            font-size: 16px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            text-align: center;
+        }
+        .cal-dow {
+            font-size: 9px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            padding: 4px 0;
+        }
+        .cal-cell {
+            aspect-ratio: 1;
+            border-radius: 8px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            border: 1px solid transparent;
+            cursor: pointer;
+        }
+        .cal-cell.today {
+            border-color: var(--text-light);
+        }
+        .cal-cell.done {
+            background: #F3F0E9;
+            border-color: var(--gold);
+        }
+        .cal-cell.missed {
+            background: #F9F3F3;
+            border-color: #E8D5D5;
+        }
+        .cal-cell.other {
+            color: #D5D3CF;
+        }
+        .cal-close {
+            display: block;
+            margin: 16px auto 0;
+            padding: 8px 20px;
+            border-radius: 15px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            font-size: 13px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 16px;
+            border: 1px solid var(--border);
+        }
+        .score-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .score-box {
+            flex: 1;
+            text-align: center;
+            padding: 10px 6px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #FAFAF8;
+        }
+        .score-box.win {
+            background: #F6F9F7;
+            border-color: #D5E5DC;
+        }
+        .score-box.lose {
+            background: #FBF7F7;
+            border-color: #E8D5D5;
+        }
+        .score-box .label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-light);
+        }
+        .score-box .val {
+            font-size: 32px;
+            font-weight: 400;
+        }
+        .win .val {
+            color: var(--win);
+        }
+        .lose .val {
+            color: var(--lose);
+        }
+        .streak-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        .streak-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: #E5E0D8;
+        }
+        .streak-dot.on {
+            background: var(--gold);
+        }
+        .streak-num {
+            font-size: 11px;
+            font-weight: 500;
+            margin-left: 6px;
+            color: var(--text-light);
+        }
+        .bar-wrap {
+            margin-bottom: 10px;
+        }
+        .bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: var(--text-light);
+            margin-bottom: 4px;
+        }
+        .bar {
+            height: 3px;
+            background: #E8E5DE;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        .bar-fill {
+            height: 100%;
+            background: var(--gold);
+            border-radius: 2px;
+            transition: width 0.4s;
+        }
+        .input-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+        .input-row input {
+            flex: 1;
+            padding: 9px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            font-size: 12px;
+            background: #FAFAF8;
+            outline: none;
+            font-family: inherit;
+        }
+        .btn-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+        }
+        .btn {
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid transparent;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            text-align: center;
+            font-family: inherit;
+        }
+        .btn-win {
+            background: #F6F9F7;
+            border-color: #C5DCD0;
+            color: #3D6B57;
+        }
+        .btn-lose {
+            background: #FBF7F7;
+            border-color: #E5CCCC;
+            color: #8B5555;
+        }
+
+        .mini-cal {
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+            padding: 4px 0;
+        }
+        .mini-day {
+            min-width: 34px;
+            height: 42px;
+            border-radius: 6px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+        .mini-day.today {
+            border-color: var(--text);
+        }
+        .mini-day.selected {
+            border-color: var(--gold);
+            background: #FBFAF5;
+        }
+        .mini-day.done::after {
+            content: '◆';
+            font-size: 8px;
+            color: var(--gold);
+        }
+        .mini-day.missed::after {
+            content: '◇';
+            font-size: 8px;
+            color: var(--lose);
+        }
+        .mini-day .dow {
+            font-size: 7px;
+        }
+        .mini-day .num {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        .chain-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .chain-top {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chain-top h3 {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+        .chain-status {
+            font-size: 9px;
+            font-weight: 500;
+        }
+        .chain-status.no {
+            color: #B06A6A;
+        }
+        .chain-status.yes {
+            color: var(--win);
+        }
+        .task {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-bottom: 1px solid #F5F3EF;
+        }
+        .task:last-child {
+            border-bottom: none;
+        }
+        .task-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid #E0DCD5;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            color: transparent;
+            cursor: pointer;
+        }
+        .task-dot.done {
+            background: var(--win);
+            border-color: var(--win);
+            color: #FFF;
+        }
+        .task-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .task-name {
+            font-size: 12px;
+        }
+        .task.done .task-name {
+            text-decoration: line-through;
+            color: #C5C5C5;
+        }
+        .task-time {
+            font-size: 9px;
+            color: var(--text-light);
+            margin-top: 1px;
+        }
+        .task-grip {
+            font-size: 11px;
+            color: #C5C0B8;
+            cursor: pointer;
+            padding: 4px 2px;
+        }
+        .task-del {
+            font-size: 12px;
+            color: #CCC;
+            cursor: pointer;
+            padding: 2px;
+        }
+        .add-row {
+            display: flex;
+            gap: 5px;
+            padding: 8px 12px;
+            border-top: 1px solid var(--border);
+        }
+        .add-row input {
+            padding: 7px 8px;
+            border-radius: 5px;
+            border: 1px solid var(--border);
+            font-size: 11px;
+            background: #FAFAF8;
+            outline: none;
+            font-family: inherit;
+        }
+        .add-row input.name {
+            flex: 2;
+        }
+        .add-row input.time {
+            flex: 1;
+            text-align: center;
+            min-width: 45px;
+        }
+        .add-row button {
+            padding: 7px 10px;
+            border-radius: 5px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            font-size: 11px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            color: var(--text);
+        }
+        .actions {
+            display: flex;
+            gap: 5px;
+            padding: 8px 12px 10px;
+            flex-wrap: wrap;
+        }
+        .actions button {
+            font-size: 9px;
+            color: var(--text-light);
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 4px 7px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .habit-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 14px;
+            border: 1px solid var(--border);
+        }
+        .habit-card h3 {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-light);
+            font-weight: 500;
+            margin-bottom: 12px;
+        }
+        .habit-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            height: 100px;
+            padding: 0 4px;
+        }
+        .habit-bar-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            height: 100%;
+            justify-content: flex-end;
+        }
+        .habit-bar {
+            width: 100%;
+            max-width: 32px;
+            border-radius: 4px 4px 0 0;
+            background: var(--khaki);
+            transition: height 0.5s ease;
+            min-height: 4px;
+        }
+        .habit-bar.today {
+            background: var(--gold);
+        }
+        .habit-bar-label {
+            font-size: 8px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .stopwatch-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 14px;
+            border: 1px solid var(--border);
+        }
+        .stopwatch-card h3 {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-light);
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+        .sw-display {
+            font-size: 42px;
+            font-weight: 300;
+            text-align: center;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            font-family: 'SF Mono', 'Menlo', monospace;
+            padding: 10px 0;
+            background: #FAFAF8;
+            border-radius: 8px;
+        }
+        .sw-task-input {
+            width: 100%;
+            padding: 9px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            font-size: 12px;
+            background: #FAFAF8;
+            outline: none;
+            font-family: inherit;
+            margin-bottom: 8px;
+        }
+        .sw-btns {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .sw-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            font-size: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            background: var(--card);
+            color: var(--text);
+            font-weight: 500;
+        }
+        .sw-btn.start {
+            background: #F6F9F7;
+            border-color: #C5DCD0;
+            color: #3D6B57;
+        }
+        .sw-btn.stop {
+            background: #FBF7F7;
+            border-color: #E5CCCC;
+            color: #8B5555;
+        }
+        .sw-history {
+            max-height: 180px;
+            overflow-y: auto;
+        }
+        .sw-history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #F5F3EF;
+            font-size: 11px;
+            gap: 8px;
+        }
+        .sw-h-task {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .sw-h-time {
+            font-family: 'SF Mono', 'Menlo', monospace;
+            color: var(--text-light);
+            font-size: 11px;
+        }
+        .sw-h-del {
+            color: #CCC;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 6px;
+        }
+        .stat {
+            flex: 1;
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 10px;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+        .stat .v {
+            font-size: 22px;
+            font-weight: 500;
+        }
+        .stat .l {
+            font-size: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--text-light);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1B1B1B;
+            color: #E0D6C2;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 100;
+            pointer-events: none;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(27,27,27,0.7);
+            z-index: 300;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s;
+        }
+        .modal.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .modal-card {
+            background: #FFFEFB;
+            border-radius: 16px;
+            padding: 28px 22px;
+            margin: 20px;
+            text-align: center;
+            max-width: 320px;
+            width: 100%;
+        }
+        .modal-emoji {
+            font-size: 44px;
+            margin-bottom: 10px;
+        }
+        .modal-q {
+            font-size: 15px;
+            font-weight: 500;
+            color: #1B1B1B;
+            line-height: 1.4;
+            margin-bottom: 6px;
+        }
+        .modal-sub {
+            font-size: 11px;
+            color: #999;
+            font-style: italic;
+            margin-bottom: 14px;
+        }
+        .modal-btn {
+            padding: 8px 24px;
+            border-radius: 20px;
+            border: 1px solid #C9B99A;
+            background: #F5F3EF;
+            font-size: 13px;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        ::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div class="header">
+            <div class="titles">
+                <h1>the best version of myself</h1>
+                <div class="sub">vs. the minute desire</div>
+            </div>
+            <button class="menu-btn" id="menuBtn">☰</button>
+        </div>
+
+        <div class="card">
+            <div class="score-row">
+                <div class="score-box win"><div class="label">◆ Wins</div><div class="val" id="winScore">0</div></div>
+                <div class="score-box lose"><div class="label">◇ Impulses</div><div class="val" id="impulseScore">0</div></div>
+            </div>
+            <div class="streak-row" id="streakDots"></div>
+            <div class="bar-wrap">
+                <div class="bar-label"><span id="ratioText">0:0</span><span>Goal 70%</span></div>
+                <div class="bar"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
+            </div>
+            <div class="input-row"><input type="text" id="gameInput" placeholder="What happened?" maxlength="60"></div>
+            <div class="btn-row">
+                <button class="btn btn-win" id="gameWinBtn">◆ I Won</button>
+                <button class="btn btn-lose" id="gameLoseBtn">◇ Impulse</button>
+            </div>
+        </div>
+
+        <div class="mini-cal" id="miniCal"></div>
+
+        <div class="habit-card">
+            <h3>📊 Habit Tracker · Last 7 Days</h3>
+            <div class="habit-chart" id="habitChart"></div>
+        </div>
+
+        <div class="chain-card">
+            <div class="chain-top"><h3 id="chainTitle">Today's Chain</h3><span class="chain-status no" id="chainStatus">incomplete</span></div>
+            <div id="taskList"></div>
+            <div class="add-row">
+                <input type="text" class="name" id="newTaskName" placeholder="+ task" maxlength="50">
+                <input type="text" class="time" id="newTaskStart" placeholder="start" maxlength="8">
+                <input type="text" class="time" id="newTaskEnd" placeholder="end" maxlength="8">
+                <button id="addTaskBtn">Add</button>
+            </div>
+            <div class="actions">
+                <button id="dupTodayBtn">↻ Dup Today</button>
+                <button id="dupTomorrowBtn">↻ Dup Tomorrow</button>
+                <button id="dupWeekBtn">↻ Dup 7 Days</button>
+                <button id="resetDayBtn">Reset Day</button>
+            </div>
+        </div>
+
+        <div class="stopwatch-card">
+            <h3>⏱ Stopwatch</h3>
+            <div class="sw-display" id="swDisplay">00:00:00</div>
+            <input type="text" class="sw-task-input" id="swTaskName" placeholder="What are you working on?" maxlength="50">
+            <div class="sw-btns">
+                <button class="sw-btn start" id="swStartBtn">Start</button>
+                <button class="sw-btn stop" id="swStopBtn">Stop</button>
+                <button class="sw-btn" id="swResetBtn">Reset</button>
+            </div>
+            <div class="sw-history" id="swHistory"></div>
+        </div>
+
+        <div class="stats">
+            <div class="stat"><div class="v" id="streakDays">0</div><div class="l">Day Streak</div></div>
+            <div class="stat"><div class="v" id="totalDone">0</div><div class="l">Chains Done</div></div>
+            <div class="stat"><div class="v" id="totalMissed">0</div><div class="l">Missed</div></div>
+        </div>
+        <div class="toast" id="toast"></div>
+    </div>
+
+    <div class="panel-overlay" id="panelOverlay"></div>
+    <div class="slide-panel" id="slidePanel">
+        <button class="panel-close" id="panelCloseBtn">×</button>
+        <div class="panel-section">
+            <div class="section-title">Calendar</div>
+            <button class="panel-btn" id="panelCalBtn">📅 Open Full Calendar</button>
+            <button class="panel-btn" id="panelTodayBtn">📍 Go to Today</button>
+        </div>
+        <div class="panel-section">
+            <div class="section-title">Data</div>
+            <button class="panel-btn danger" id="panelResetBtn">Reset All Progress</button>
+        </div>
+    </div>
+
+    <div class="cal-modal" id="calModal">
+        <div class="cal-modal-card">
+            <div class="cal-month-header">
+                <button id="calPrevMonth">←</button>
+                <span id="calMonthTitle"></span>
+                <button id="calNextMonth">→</button>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+            <button class="cal-close" id="calCloseBtn">Close</button>
+        </div>
+    </div>
+
+    <div class="modal" id="motiveModal">
+        <div class="modal-card">
+            <div class="modal-emoji" id="motiveEmoji">⚡</div>
+            <div class="modal-q" id="motiveQuote"></div>
+            <div class="modal-sub" id="motiveSub"></div>
+            <button class="modal-btn" id="motiveCloseBtn">I'm Ready ✦</button>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE = 'bm_v7';
+        function load() {
+            const r = localStorage.getItem(STORAGE);
+            if (r) { try { return JSON.parse(r); } catch (e) {} }
+            return {
+                wins: 0, impulses: 0, gameLog: [],
+                tasks: [
+                    { id: 1, name: 'Make the bed', start: '07:00', end: '07:05' },
+                    { id: 2, name: 'Drink water', start: '07:05', end: '07:10' },
+                    { id: 3, name: 'Stretch', start: '07:10', end: '07:30' },
+                    { id: 4, name: 'Read 10 pages', start: '20:00', end: '20:30' },
+                    { id: 5, name: 'No phone', start: '22:00', end: '06:00' },
+                ],
+                done: {}, today: {}, nextId: 6, future: {},
+                swHistory: []
+            };
+        }
+        function save() { localStorage.setItem(STORAGE, JSON.stringify(D)); }
+        let D = load();
+        const tk = () => new Date().toISOString().slice(0, 10);
+        const dk = (d) => d.toISOString().slice(0, 10);
+        const $ = (id) => document.getElementById(id);
+        let viewOffset = 0;
+        function viewKey() { const d = new Date();
+            d.setDate(d.getDate() + viewOffset); return dk(d); }
+
+        let swInterval = null, swSeconds = 0;
+        function swFmt(s) { const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60; return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0'); }
+        function swUpdate() { $('swDisplay').textContent = swFmt(swSeconds); }
+        function renderSwHistory() {
+            if (D.swHistory.length === 0) { $('swHistory').innerHTML = '<div style="font-size:10px;color:#C5C5C5;text-align:center;padding:10px 0;">No records yet</div>'; return; }
+            $('swHistory').innerHTML = D.swHistory.slice().reverse().map((h, i) => {
+                const realIdx = D.swHistory.length - 1 - i;
+                return '<div class="sw-history-item"><span class="sw-h-task">' + esc(h.task) + '</span><span class="sw-h-time">' + swFmt(h.seconds) + '</span><span class="sw-h-del" data-idx="' + realIdx + '">×</span></div>';
+            }).join('');
+            $('swHistory').querySelectorAll('.sw-h-del').forEach(el => { el.addEventListener('click', (e) => { e.stopPropagation();
+                D.swHistory.splice(parseInt(el.dataset.idx), 1);
+                save();
+                renderSwHistory(); }); });
+        }
+        $('swStartBtn').addEventListener('click', () => { if (swInterval) return;
+            swInterval = setInterval(() => { swSeconds++;
+                swUpdate(); }, 1000);
+            $('swStartBtn').textContent = 'Running...'; });
+        $('swStopBtn').addEventListener('click', () => { if (!swInterval && swSeconds === 0) return;
+            clearInterval(swInterval);
+            swInterval = null; const task = $('swTaskName').value.trim() || 'Untitled';
+            D.swHistory.push({ task, seconds: swSeconds, date: tk() });
+            swSeconds = 0;
+            swUpdate();
+            $('swStartBtn').textContent = 'Start';
+            save();
+            renderSwHistory();
+            toast('⏱ Saved: ' + task); });
+        $('swResetBtn').addEventListener('click', () => { clearInterval(swInterval);
+            swInterval = null;
+            swSeconds = 0;
+            swUpdate();
+            $('swStartBtn').textContent = 'Start'; });
+
+        function renderHabitChart() {
+            const days = [];
+            const today = new Date();
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(today.getDate() - i);
+                const key = dk(d);
+                days.push({
+                    key,
+                    label: ['S','M','T','W','T','F','S'][d.getDay()],
+                    isToday: i === 0,
+                    done: D.done[key] === true,
+                    missed: D.done[key] === false,
+                    tasks: D.future[key] || D.tasks
+                });
+            }
+            const maxTasks = Math.max(1, ...days.map(d => d.tasks.length));
+            $('habitChart').innerHTML = days.map(d => {
+                const doneCount = d.done ? d.tasks.length : (d.missed ? 0 : 0);
+                const pct = Math.round((doneCount / d.tasks.length) * 100);
+                const height = d.tasks.length > 0 ? Math.max(4, (doneCount / maxTasks) * 90) : 4;
+                return '<div class="habit-bar-wrap">' +
+                    '<div class="habit-bar' + (d.isToday ? ' today' : '') + '" style="height:' + height + 'px"></div>' +
+                    '<div class="habit-bar-label">' + d.label + '</div>' +
+                    '</div>';
+            }).join('');
+        }
+
+        function renderAll() {
+            $('winScore').textContent = D.wins;
+            $('impulseScore').textContent = D.impulses;
+            const t = D.wins + D.impulses;
+            $('barFill').style.width = t > 0 ? Math.round((D.wins / t) * 100) + '%' : '0%';
+            $('ratioText').textContent = t > 0 ? D.wins + ':' + D.impulses + ' (' + Math.round((D.wins / t) * 100) + '%)' : '0:0';
+            let s = 0;
+            const today = tk();
+            if (D.done[today] === true) { s = 1;
+                const d = new Date(); while (true) { d.setDate(d.getDate() - 1); if (D.done[dk(d)] === true) s++;
+                    else break; } } else { const y = new Date();
+                y.setDate(y.getDate() - 1); if (D.done[dk(y)] === true) { s = 1;
+                    const d = new Date(y); while (true) { d.setDate(d.getDate() - 1); if (D.done[dk(d)] === true) s++;
+                        else break; } } }
+            let dotsHtml = '';
+            for (let i = 0; i < 7; i++) dotsHtml += '<div class="streak-dot' + (i < s ? ' on' : '') + '"></div>';
+            $('streakDots').innerHTML = dotsHtml + '<span class="streak-num">' + s + ' days</span>';
+            const cal = [];
+            const now = new Date();
+            for (let i = -3; i <= 10; i++) { const d = new Date(now);
+                d.setDate(now.getDate() + i); const key = dk(d);
+                cal.push({ key, num: d.getDate(), dow: ['S','M','T','W','T','F','S'][d.getDay()], isToday: i === 0, isSel: i === viewOffset, status: D.done[key] }); }
+            $('miniCal').innerHTML = cal.map(c => {
+                let cls = 'mini-day';
+                if (c.isToday) cls += ' today';
+                if (c.isSel) cls += ' selected';
+                if (c.status === true) cls += ' done';
+                if (c.status === false) cls += ' missed';
+                return '<div class="' + cls + '" data-key="' + c.key + '"><span class="dow">' + c.dow + '</span><span class="num">' + c.num + '</span></div>';
+            }).join('');
+            $('miniCal').querySelectorAll('.mini-day').forEach(el => { el.addEventListener('click', () => { const todayD = new Date(); const d = new Date(el.dataset.key);
+                viewOffset = Math.round((d - new Date(todayD.getFullYear(), todayD.getMonth(), todayD.getDate())) / 86400000);
+                renderAll(); }); });
+            const vk = viewKey();
+            const tasks = D.future[vk] || (vk === today ? D.tasks : D.tasks);
+            const comp = vk === today ? D.today : {};
+            const allDone = tasks.length > 0 && tasks.every(t => comp[t.id] === true);
+            $('chainTitle').textContent = vk === today ? "Today's Chain" : new Date(vk).toLocaleDateString('en', { weekday: 'short', day: 'numeric', month: 'short' });
+            $('chainStatus').textContent = tasks.length === 0 ? 'no tasks' : allDone ? 'complete ◆' : 'incomplete';
+            $('chainStatus').className = 'chain-status ' + (allDone && tasks.length > 0 ? 'yes' : 'no');
+            let taskHtml = '';
+            tasks.forEach((t) => { const isDone = comp[t.id] === true;
+                taskHtml += '<div class="task' + (isDone ? ' done' : '') + '">' +
+                    '<div class="task-dot' + (isDone ? ' done' : '') + '" data-id="' + t.id + '">' + (isDone ? '✓' : '') + '</div>' +
+                    '<div class="task-info"><div class="task-name">' + esc(t.name) + '</div>' +
+                    (t.start ? '<div class="task-time">' + t.start + (t.end ? ' – ' + t.end : '') + '</div>' : '') + '</div>' +
+                    '<div class="task-grip" data-id="' + t.id + '">⋮⋮</div>' +
+                    '<div class="task-del" data-id="' + t.id + '">×</div></div>'; });
+            $('taskList').innerHTML = taskHtml;
+            $('taskList').querySelectorAll('.task-dot').forEach(el => { el.addEventListener('click', () => toggle(parseInt(el.dataset.id))); });
+            $('taskList').querySelectorAll('.task-del').forEach(el => { el.addEventListener('click', (e) => { e.stopPropagation();
+                delTask(parseInt(el.dataset.id)); }); });
+            $('taskList').querySelectorAll('.task-grip').forEach(el => { el.addEventListener('click', (e) => { e.stopPropagation();
+                moveUp(parseInt(el.dataset.id)); }); });
+            $('streakDays').textContent = s;
+            $('totalDone').textContent = Object.values(D.done).filter(v => v === true).length;
+            $('totalMissed').textContent = Object.values(D.done).filter(v => v === false).length;
+            renderSwHistory();
+            renderHabitChart();
+            save();
+        }
+        function esc(s) { const d = document.createElement('div');
+            d.textContent = s; return d.innerHTML; }
+        function toggle(id) { if (viewKey() !== tk()) return;
+            D.today[id] = !D.today[id]; const tasks = D.future[tk()] || D.tasks;
+            D.done[tk()] = tasks.length > 0 && tasks.every(t => D.today[t.id] === true) ? true : false;
+            if (D.done[tk()]) setTimeout(showMotive, 500);
+            save();
+            renderAll(); }
+        function delTask(id) { if (!confirm('Delete?')) return; const vk = viewKey(); let tasks = D.future[vk] || D.tasks;
+            tasks = tasks.filter(t => t.id !== id); if (D.future[vk]) D.future[vk] = tasks; else if (vk === tk()) { D.tasks = tasks;
+                delete D.today[id]; }
+            D.done[vk] = tasks.length > 0 && tasks.every(t => (D.today[t.id] || false)) ? true : false;
+            save();
+            renderAll(); }
+        function moveUp(id) { const vk = viewKey(); let tasks = D.future[vk] ? [...D.future[vk]] : [...D.tasks]; const idx = tasks.findIndex(t => t.id === id); if (idx <= 0) return;
+            [tasks[idx - 1], tasks[idx]] = [tasks[idx], tasks[idx - 1]]; if (D.future[vk]) D.future[vk] = tasks; else if (vk === tk()) D.tasks = tasks;
+            save();
+            renderAll(); }
+        function addTask() { const name = $('newTaskName').value.trim(); if (!name) return; const vk = viewKey(); const t = { id: D.nextId++, name, start: $('newTaskStart').value.trim(), end: $('newTaskEnd').value.trim() }; if (D.future[vk]) D.future[vk].push(t); else if (vk === tk()) D.tasks.push(t); else D.future[vk] = [...D.tasks, t];
+            $('newTaskName').value = '';
+            $('newTaskStart').value = '';
+            $('newTaskEnd').value = '';
+            save();
+            renderAll(); }
+        function recordGame(type) { const reason = $('gameInput').value.trim();
+            D.gameLog.push({ type, reason: reason || (type === 'win' ? 'Did it' : 'Gave in'), ts: Date.now(), date: tk() });
+            type === 'win' ? D.wins++ : D.impulses++;
+            $('gameInput').value = '';
+            toast(type === 'win' ? '◆ Win!' : '◇ Impulse');
+            save();
+            renderAll(); }
+        function dup(key) { if (!D.future[key]) D.future[key] = JSON.parse(JSON.stringify(D.tasks)); }
+        const triggers = [
+            { e: '⚡', q: 'The person you want to become is watching.', s: 'Don\'t let her down.' },
+            { e: '🔥', q: 'No one is coming to save you.', s: 'This is YOUR moment.' },
+            { e: '💎', q: 'Pressure creates diamonds.', s: 'You\'re being forged right now.' },
+            { e: '🦅', q: 'While others scroll, you build.', s: 'Discipline is freedom.' },
+            { e: '🌊', q: 'The tide doesn\'t ask permission.', s: 'Neither should you.' },
+            { e: '🏔', q: 'The summit is lonely for a reason.', s: 'Few are willing to climb.' },
+            { e: '⚔️', q: 'Today is a battle.', s: 'Pick up your sword.' },
+            { e: '🕯', q: 'Your focus is the only light.', s: 'Guard it fiercely.' },
+            { e: '🔑', q: 'Every completed task is a key.', s: 'Unlock your freedom.' },
+            { e: '🎯', q: 'Excellence is a choice.', s: 'Made in moments like this.' },
+            { e: '🦁', q: 'The lion doesn\'t beg the lamb.', s: 'Lead yourself.' },
+            { e: '💫', q: 'One focused day changes everything.', s: 'Make today that day.' },
+            { e: '🕊', q: 'Peace comes from doing EVERYTHING.', s: 'Finish the chain. Then rest.' },
+            { e: '🌅', q: 'The sun rises on a fresh battlefield.', s: '24 hours. Make them count.' },
+        ];
+        function showMotive() { const i = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 86400000) % triggers.length; const t = triggers[i];
+            $('motiveEmoji').textContent = t.e;
+            $('motiveQuote').textContent = t.q;
+            $('motiveSub').textContent = t.s;
+            $('motiveModal').classList.add('show'); }
+        let toastTimer;
+        function toast(msg) { clearTimeout(toastTimer);
+            $('toast').textContent = msg;
+            $('toast').classList.add('show');
+            toastTimer = setTimeout(() => $('toast').classList.remove('show'), 1800); }
+        let calViewMonth = new Date().getMonth(), calViewYear = new Date().getFullYear();
+        function renderCalModal() {
+            $('calMonthTitle').textContent = new Date(calViewYear, calViewMonth).toLocaleString('en', { month: 'long', year: 'numeric' });
+            const firstDay = new Date(calViewYear, calViewMonth, 1).getDay(), daysInMonth = new Date(calViewYear, calViewMonth + 1, 0).getDate();
+            let html = '';
+            ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => html += '<div class="cal-dow">' + d + '</div>');
+            for (let i = 0; i < (firstDay === 0 ? 6 : firstDay - 1); i++) html += '<div class="cal-cell other"></div>';
+            for (let d = 1; d <= daysInMonth; d++) { const key = calViewYear + '-' + String(calViewMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0'); let cls = 'cal-cell'; if (key === tk()) cls += ' today'; if (D.done[key] === true) cls += ' done'; if (D.done[key] === false) cls += ' missed';
+                html += '<div class="' + cls + '" data-key="' + key + '">' + d + '</div>'; }
+            $('calGrid').innerHTML = html;
+            $('calGrid').querySelectorAll('.cal-cell[data-key]').forEach(el => { el.addEventListener('click', () => { const d = new Date(el.dataset.key);
+                viewOffset = Math.round((d - new Date(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())) / 86400000);
+                $('calModal').classList.remove('show');
+                renderAll(); }); });
+        }
+
+        const last = localStorage.getItem('bm_last_date');
+        if (last !== tk()) { D.today = {}; if (D.future[tk()]) { D.tasks = D.future[tk()];
+                delete D.future[tk()]; } localStorage.setItem('bm_last_date', tk());
+            setTimeout(showMotive, 600); }
+
+        $('gameWinBtn').addEventListener('click', () => recordGame('win'));
+        $('gameLoseBtn').addEventListener('click', () => recordGame('lose'));
+        $('addTaskBtn').addEventListener('click', addTask);
+        $('newTaskName').addEventListener('keydown', (e) => { if (e.key === 'Enter') addTask(); });
+        $('resetDayBtn').addEventListener('click', () => { if (confirm('Reset today?')) { D.today = {};
+            D.done[tk()] = false;
+            save();
+            renderAll();
+            toast('Day reset'); } });
+        $('dupTodayBtn').addEventListener('click', () => { dup(tk());
+            toast('✓ Done');
+            renderAll(); });
+        $('dupTomorrowBtn').addEventListener('click', () => { const d = new Date();
+            d.setDate(d.getDate() + 1);
+            dup(dk(d));
+            toast('✓ Done');
+            renderAll(); });
+        $('dupWeekBtn').addEventListener('click', () => { for (let i = 1; i <= 7; i++) { const d = new Date();
+                d.setDate(d.getDate() + i);
+                dup(dk(d)); } toast('✓ 7 days');
+            renderAll(); });
+
+        $('menuBtn').addEventListener('click', () => { $('panelOverlay').classList.add('show');
+            $('slidePanel').classList.add('show'); });
+        $('panelCloseBtn').addEventListener('click', () => { $('panelOverlay').classList.remove('show');
+            $('slidePanel').classList.remove('show'); });
+        $('panelOverlay').addEventListener('click', () => { $('panelOverlay').classList.remove('show');
+            $('slidePanel').classList.remove('show'); });
+        $('panelTodayBtn').addEventListener('click', () => { viewOffset = 0;
+            $('panelOverlay').classList.remove('show');
+            $('slidePanel').classList.remove('show');
+            renderAll(); });
+        $('panelCalBtn').addEventListener('click', () => { $('panelOverlay').classList.remove('show');
+            $('slidePanel').classList.remove('show');
+            $('calModal').classList.add('show');
+            renderCalModal(); });
+        $('panelResetBtn').addEventListener('click', () => { $('panelOverlay').classList.remove('show');
+            $('slidePanel').classList.remove('show'); if (confirm('Reset everything?')) { D = { wins: 0, impulses: 0, gameLog: [], tasks: [
+                    { id: 1, name: 'Make the bed', start: '07:00', end: '07:05' },
+                    { id: 2, name: 'Drink water', start: '07:05', end: '07:10' },
+                    { id: 3, name: 'Stretch', start: '07:10', end: '07:30' },
+                    { id: 4, name: 'Read 10 pages', start: '20:00', end: '20:30' },
+                    { id: 5, name: 'No phone', start: '22:00', end: '06:00' },
+                ], done: {}, today: {}, nextId: 6, future: {}, swHistory: [] };
+                save();
+                renderAll();
+                toast('All reset'); } });
+        $('calCloseBtn').addEventListener('click', () => $('calModal').classList.remove('show'));
+        $('calModal').addEventListener('click', (e) => { if (e.target === $('calModal')) $('calModal').classList.remove('show'); });
+        $('calPrevMonth').addEventListener('click', () => { calViewMonth--;
+            if (calViewMonth < 0) { calViewMonth = 11;
+                calViewYear--; } renderCalModal(); });
+        $('calNextMonth').addEventListener('click', () => { calViewMonth++;
+            if (calViewMonth > 11) { calViewMonth = 0;
+                calViewYear++; } renderCalModal(); });
+        $('motiveCloseBtn').addEventListener('click', () => $('motiveModal').classList.remove('show'));
+        $('motiveModal').addEventListener('click', (e) => { if (e.target === $('motiveModal')) $('motiveModal').classList.remove('show'); });
+
+        renderAll();
+    </script>
+</body>
+</html>
